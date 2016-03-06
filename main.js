@@ -23,7 +23,13 @@ var mainState = (function (_super) {
         _super.prototype.create.call(this);
         // TileSprite: Se repite automáticamente
         this.sea = this.add.tileSprite(0, 0, 800, 600, 'background');
-        this.player = new Player(this.game, 400, 550, 'player', 0);
+        this.bullets = this.add.group();
+        this.bullets.classType = Bullet;
+        //Agregamos 100 sprites de bala al grupo.
+        // Por defecto se usa el primes sprite del "sprite sheet" y se pone
+        // el estado inicial como no existente (muerto).
+        this.bullets.createMultiple(100, 'bullet');
+        this.player = new Player(this.game, 400, 550, 'player', 0, this.bullets);
         this.add.existing(this.player);
         this.enemy = this.add.sprite(400, 200, 'greenEnemy');
         // Definimos una animación marcando los "frames" que definen la animación y los fps
@@ -32,18 +38,6 @@ var mainState = (function (_super) {
         this.enemy.play('fly');
         this.enemy.anchor.setTo(0.5, 0.5);
         this.physics.enable(this.enemy, Phaser.Physics.ARCADE);
-        // Add an empty sprite group into our game
-        this.bullets = this.add.group();
-        this.bullets.classType = Bullet;
-        // Enable physics to the whole sprite group
-        this.bullets.enableBody = true;
-        this.bullets.physicsBodyType = Phaser.Physics.ARCADE;
-        //Agregamos 100 sprites de bala al grupo.
-        // Por defecto se usa el primes sprite del "sprite sheet" y se pone
-        // el estado inicial como no existente (muerto).
-        this.bullets.createMultiple(100, 'bullet');
-        this.nextShotAt = 0;
-        this.shotDelay = 100;
         this.cursors = this.input.keyboard.createCursorKeys();
     };
     mainState.prototype.update = function () {
@@ -70,19 +64,8 @@ var mainState = (function (_super) {
         }
         if (this.input.keyboard.isDown(Phaser.Keyboard.Z) ||
             this.input.activePointer.isDown) {
-            this.fire();
+            this.player.fire();
         }
-    };
-    mainState.prototype.fire = function () {
-        if (this.nextShotAt > this.time.now) {
-            return;
-        }
-        this.nextShotAt = this.time.now + this.shotDelay;
-        // Buscamos la primera bala muerta que haya
-        var bullet = this.bullets.getFirstExists(false);
-        // Revivimos el sprite y lo ponemos en la nueva posición
-        bullet.reset(this.player.x, this.player.y - 20);
-        bullet.body.velocity.y = -500;
     };
     mainState.prototype.enemyHit = function (bullet, enemy) {
         bullet.kill();
@@ -102,7 +85,7 @@ var mainState = (function (_super) {
 })(Phaser.State);
 var Player = (function (_super) {
     __extends(Player, _super);
-    function Player(game, x, y, key, frame) {
+    function Player(game, x, y, key, frame, bullets) {
         _super.call(this, game, x, y, key, frame);
         this.anchor.setTo(0.5, 0.5);
         this.animations.add('fly', [0, 1, 2], 20, true);
@@ -110,7 +93,24 @@ var Player = (function (_super) {
         this.game.physics.enable(this, Phaser.Physics.ARCADE);
         this.speed = 300;
         this.body.collideWorldBounds = true;
+        this.nextShotAt = 0;
+        this.shotDelay = 100;
+        this.bullets = bullets;
     }
+    Player.prototype.fire = function () {
+        if (this.nextShotAt > this.game.time.now) {
+            return;
+        }
+        this.nextShotAt = this.game.time.now + this.shotDelay;
+        // Buscamos la primera bala muerta que haya
+        var bullet = this.bullets.getFirstExists(false);
+        // Revivimos el sprite y lo ponemos en la nueva posición
+        bullet.reset(this.x, this.y - 20);
+        bullet.body.velocity.y = -500;
+    };
+    Player.prototype.update = function () {
+        _super.prototype.update.call(this);
+    };
     return Player;
 })(Phaser.Sprite);
 var Bullet = (function (_super) {
@@ -119,11 +119,11 @@ var Bullet = (function (_super) {
         _super.call(this, game, x, y, key, frame);
         // Fijamos el "anchor"
         this.anchor.setTo(0.5, 0.5);
+        this.game.physics.enable(this, Phaser.Physics.ARCADE);
         // Matamos la bala si se sale de los límites de la pantalla
         this.outOfBoundsKill = true;
         this.checkWorldBounds = true;
     }
-
     return Bullet;
 })(Phaser.Sprite);
 var SimpleGame = (function () {

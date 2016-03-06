@@ -6,8 +6,6 @@ class mainState extends Phaser.State {
     private player:Player;
     private enemy:Phaser.Sprite;
     private bullets:Phaser.Group;
-    private nextShotAt:number;
-    private shotDelay:number;
     private cursors:Phaser.CursorKeys;
 
     preload():void {
@@ -29,7 +27,15 @@ class mainState extends Phaser.State {
         // TileSprite: Se repite automáticamente
         this.sea = this.add.tileSprite(0, 0, 800, 600, 'background');
 
-        this.player = new Player(this.game, 400, 550, 'player', 0);
+        this.bullets = this.add.group();
+        this.bullets.classType = Bullet;
+
+        //Agregamos 100 sprites de bala al grupo.
+        // Por defecto se usa el primes sprite del "sprite sheet" y se pone
+        // el estado inicial como no existente (muerto).
+        this.bullets.createMultiple(100, 'bullet');
+
+        this.player = new Player(this.game, 400, 550, 'player', 0, this.bullets);
         this.add.existing(this.player);
 
         this.enemy = this.add.sprite(400, 200, 'greenEnemy');
@@ -39,22 +45,6 @@ class mainState extends Phaser.State {
         this.enemy.play('fly');
         this.enemy.anchor.setTo(0.5, 0.5);
         this.physics.enable(this.enemy, Phaser.Physics.ARCADE);
-
-        // Add an empty sprite group into our game
-        this.bullets = this.add.group();
-        this.bullets.classType = Bullet;
-
-        // Enable physics to the whole sprite group
-        this.bullets.enableBody = true;
-        this.bullets.physicsBodyType = Phaser.Physics.ARCADE;
-
-        //Agregamos 100 sprites de bala al grupo.
-        // Por defecto se usa el primes sprite del "sprite sheet" y se pone
-        // el estado inicial como no existente (muerto).
-        this.bullets.createMultiple(100, 'bullet');
-
-        this.nextShotAt = 0;
-        this.shotDelay = 100;
 
         this.cursors = this.input.keyboard.createCursorKeys();
     }
@@ -89,29 +79,14 @@ class mainState extends Phaser.State {
 
         if (this.input.keyboard.isDown(Phaser.Keyboard.Z) ||
             this.input.activePointer.isDown) {
-            this.fire();
+            this.player.fire();
         }
-    }
-
-    fire():void {
-        if (this.nextShotAt > this.time.now) {
-            return;
-        }
-
-        this.nextShotAt = this.time.now + this.shotDelay;
-
-        // Buscamos la primera bala muerta que haya
-        var bullet = this.bullets.getFirstExists(false);
-
-        // Revivimos el sprite y lo ponemos en la nueva posición
-        bullet.reset(this.player.x, this.player.y - 20);
-
-        bullet.body.velocity.y = -500;
     }
 
     enemyHit(bullet:Phaser.Sprite, enemy:Phaser.Sprite):void {
         bullet.kill();
         this.enemy.kill();
+
         var explosion = this.add.sprite(enemy.x, enemy.y, 'explosion');
         explosion.anchor.setTo(0.5, 0.5);
         explosion.animations.add('boom');
@@ -127,9 +102,12 @@ class mainState extends Phaser.State {
 }
 
 class Player extends Phaser.Sprite {
-    speed:number;
+    private speed:number;
+    private nextShotAt:number;
+    private shotDelay:number;
+    private bullets:Phaser.Group;
 
-    constructor(game:Phaser.Game, x:number, y:number, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture, frame:string|number) {
+    constructor(game:Phaser.Game, x:number, y:number, key:string, frame:string|number, bullets:Phaser.Group) {
         super(game, x, y, key, frame);
 
         this.anchor.setTo(0.5, 0.5);
@@ -138,15 +116,42 @@ class Player extends Phaser.Sprite {
         this.game.physics.enable(this, Phaser.Physics.ARCADE);
         this.speed = 300;
         this.body.collideWorldBounds = true;
+
+        this.nextShotAt = 0;
+        this.shotDelay = 100;
+        this.bullets = bullets;
+    }
+
+    fire():void {
+        if (this.nextShotAt > this.game.time.now) {
+            return;
+        }
+
+        this.nextShotAt = this.game.time.now + this.shotDelay;
+
+        // Buscamos la primera bala muerta que haya
+        var bullet = this.bullets.getFirstExists(false);
+
+        // Revivimos el sprite y lo ponemos en la nueva posición
+        bullet.reset(this.x, this.y - 20);
+
+        bullet.body.velocity.y = -500;
+    }
+
+    update():void {
+        super.update();
     }
 }
 
 class Bullet extends Phaser.Sprite {
+
     constructor(game:Phaser.Game, x:number, y:number, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture, frame:string|number) {
         super(game, x, y, key, frame);
 
         // Fijamos el "anchor"
         this.anchor.setTo(0.5, 0.5);
+
+        this.game.physics.enable(this, Phaser.Physics.ARCADE);
 
         // Matamos la bala si se sale de los límites de la pantalla
         this.outOfBoundsKill = true;
