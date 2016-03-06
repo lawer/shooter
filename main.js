@@ -23,6 +23,8 @@ var mainState = (function (_super) {
         this.sea = this.add.tileSprite(0, 0, 800, 600, 'background');
         this.bullet = this.add.sprite(400, 300, 'bullet');
         this.bullet.anchor.setTo(0.5, 0.5);
+        this.physics.enable(this.bullet, Phaser.Physics.ARCADE);
+        this.bullet.body.velocity.y = -500;
         this.enemy = this.add.sprite(400, 200, 'greenEnemy');
         // Definimos una animación marcando los "frames" que definen la animación y los fps
         this.enemy.animations.add('fly', [0, 1, 2], 20, true);
