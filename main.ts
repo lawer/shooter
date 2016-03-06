@@ -161,7 +161,7 @@ class Player extends Phaser.Sprite {
     }
 
     fire():void {
-        if (this.nextShotAt > this.game.time.now) {
+        if (!this.alive || this.nextShotAt > this.game.time.now) {
             return;
         }
 

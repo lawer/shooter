@@ -127,7 +127,7 @@ var Player = (function (_super) {
         this.bullets = bullets;
     }
     Player.prototype.fire = function () {
-        if (this.nextShotAt > this.game.time.now) {
+        if (!this.alive || this.nextShotAt > this.game.time.now) {
             return;
         }
         this.nextShotAt = this.game.time.now + this.shotDelay;
