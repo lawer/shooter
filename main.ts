@@ -1,14 +1,13 @@
 /// <reference path="phaser/phaser.d.ts"/>
 
 class mainState extends Phaser.State {
-    game:Phaser.Game;
     private sea:Phaser.TileSprite;
     private bullet:Phaser.Sprite;
     private player:Player;
     private enemy:Phaser.Sprite;
-    private bullets:Phaser.Sprite[] = [];
-    private nextShotAt = 0;
-    private shotDelay = 100;
+    private bullets:Phaser.Group;
+    private nextShotAt:number;
+    private shotDelay:number;
     private cursors:Phaser.CursorKeys;
 
     preload():void {
@@ -41,6 +40,29 @@ class mainState extends Phaser.State {
         this.enemy.anchor.setTo(0.5, 0.5);
         this.physics.enable(this.enemy, Phaser.Physics.ARCADE);
 
+        // Add an empty sprite group into our game
+        this.bullets = this.add.group();
+
+        // Enable physics to the whole sprite group
+        this.bullets.enableBody = true;
+        this.bullets.physicsBodyType = Phaser.Physics.ARCADE;
+
+        //Agregamos 100 sprites de bala al grupo.
+        // Por defecto se usa el primes sprite del "sprite sheet" y se pone
+        // el estado inicial como no existente (muerto).
+        this.bullets.createMultiple(100, 'bullet');
+
+        // Fijamos el "anchor"
+        this.bullets.setAll('anchor.x', 0.5);
+        this.bullets.setAll('anchor.y', 0.5);
+
+        // Matamos la bala si se sale de los límites de la pantalla
+        this.bullets.setAll('outOfBoundsKill', true);
+        this.bullets.setAll('checkWorldBounds', true);
+
+        this.nextShotAt = 0;
+        this.shotDelay = 100;
+
         this.cursors = this.input.keyboard.createCursorKeys();
     }
 
@@ -48,11 +70,9 @@ class mainState extends Phaser.State {
         super.update();
         this.sea.tilePosition.y += 0.2;
 
-        for (var i = 0; i < this.bullets.length; i++) {
-            this.physics.arcade.overlap(
-                this.bullets[i], this.enemy, this.enemyHit, null, this
-            );
-        }
+        this.physics.arcade.overlap(
+            this.bullets, this.enemy, this.enemyHit, null, this
+        );
 
         this.player.body.velocity.x = 0;
         this.player.body.velocity.y = 0;
@@ -87,11 +107,13 @@ class mainState extends Phaser.State {
 
         this.nextShotAt = this.time.now + this.shotDelay;
 
-        var bullet = this.add.sprite(this.player.x, this.player.y - 20, 'bullet');
-        bullet.anchor.setTo(0.5, 0.5);
-        this.game.physics.enable(bullet, Phaser.Physics.ARCADE);
+        // Buscamos la primera bala muerta que haya
+        var bullet = this.bullets.getFirstExists(false);
+
+        // Revivimos el sprite y lo ponemos en la nueva posición
+        bullet.reset(this.player.x, this.player.y - 20);
+
         bullet.body.velocity.y = -500;
-        this.bullets.push(bullet);
     }
 
     enemyHit(bullet:Phaser.Sprite, enemy:Phaser.Sprite):void {
