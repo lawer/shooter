@@ -2,14 +2,12 @@
 
 class mainState extends Phaser.State {
     private sea:Phaser.TileSprite;
-    private bullet:Phaser.Sprite;
     private player:Player;
-    private enemy:Phaser.Sprite;
     private bullets:Phaser.Group;
     private enemies:Phaser.Group;
 
-    private nextEnemyAt:number;
-    private enemyDelay:number;
+    private nextEnemyAt:number = 0;
+    private enemyDelay:number = 1000;
 
     private cursors:Phaser.CursorKeys;
 
@@ -28,10 +26,26 @@ class mainState extends Phaser.State {
 
     create():void {
         super.create();
+        this.createBackground();
+        this.createBullets();
+        this.createPlayer();
+        this.createEnemies();
 
-        // TileSprite: Se repite automáticamente
-        this.sea = this.add.tileSprite(0, 0, 800, 600, 'background');
+        this.cursors = this.input.keyboard.createCursorKeys();
+    }
 
+    private createEnemies() {
+        this.enemies = this.add.group();
+        this.enemies.classType = GreenEnemy;
+        this.enemies.createMultiple(50, 'greenEnemy');
+    };
+
+    private createPlayer() {
+        this.player = new Player(this.game, 400, 550, 'player', 0, this.bullets);
+        this.add.existing(this.player);
+    };
+
+    private createBullets() {
         this.bullets = this.add.group();
         this.bullets.classType = Bullet;
 
@@ -39,28 +53,26 @@ class mainState extends Phaser.State {
         // Por defecto se usa el primes sprite del "sprite sheet" y se pone
         // el estado inicial como no existente (muerto).
         this.bullets.createMultiple(100, 'bullet');
+    };
 
-        this.player = new Player(this.game, 400, 550, 'player', 0, this.bullets);
-        this.add.existing(this.player);
-
-        this.enemies = this.add.group();
-        this.enemies.classType = GreenEnemy;
-        this.enemies.createMultiple(50, 'greenEnemy');
-
-        this.nextEnemyAt = 0;
-        this.enemyDelay = 1000;
-
-        this.cursors = this.input.keyboard.createCursorKeys();
-    }
+    private createBackground() {
+        // TileSprite: Se repite automáticamente
+        this.sea = this.add.tileSprite(0, 0, 800, 600, 'background');
+    };
 
     update():void {
         super.update();
         this.sea.tilePosition.y += 0.2;
 
         this.physics.arcade.overlap(
-            this.bullets, this.enemy, this.enemyHit, null, this
+            this.bullets, this.enemies, this.enemyHit, null, this
         );
 
+        this.updatePlayer();
+        this.spawnEnemy();
+    }
+
+    private updatePlayer() {
         this.player.body.velocity.x = 0;
         this.player.body.velocity.y = 0;
 
@@ -85,11 +97,24 @@ class mainState extends Phaser.State {
             this.input.activePointer.isDown) {
             this.player.fire();
         }
+    };
+
+    spawnEnemy():void {
+        if (this.nextEnemyAt < this.time.now && this.enemies.countDead() > 0) {
+            var enemy = this.enemies.getFirstExists(false);
+            // spawn at a random location top of the screen
+            enemy.reset(this.rnd.integerInRange(20, 780), 0);
+            // also randomize the speed
+            enemy.body.velocity.y = this.rnd.integerInRange(30, 60);
+            enemy.play('fly');
+
+            this.nextEnemyAt = this.time.now + this.enemyDelay;
+        }
     }
 
     enemyHit(bullet:Phaser.Sprite, enemy:Phaser.Sprite):void {
         bullet.kill();
-        this.enemy.kill();
+        enemy.kill();
 
         var explosion = this.add.sprite(enemy.x, enemy.y, 'explosion');
         explosion.anchor.setTo(0.5, 0.5);
@@ -150,7 +175,7 @@ class Player extends Phaser.Sprite {
 
 class GreenEnemy extends Phaser.Sprite {
 
-    constructor(game:Phaser.Game, x:number, y:number, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture, frame:string|number) {
+    constructor(game:Phaser.Game, x:number, y:number, key:string, frame:string|number) {
         super(game, x, y, key, frame);
 
         this.anchor.setTo(0.5, 0.5);
@@ -165,7 +190,7 @@ class GreenEnemy extends Phaser.Sprite {
 
 class Bullet extends Phaser.Sprite {
 
-    constructor(game:Phaser.Game, x:number, y:number, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture, frame:string|number) {
+    constructor(game:Phaser.Game, x:number, y:number, key:string, frame:string|number) {
         super(game, x, y, key, frame);
 
         // Fijamos el "anchor"

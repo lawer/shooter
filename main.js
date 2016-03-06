@@ -8,6 +8,8 @@ var mainState = (function (_super) {
     __extends(mainState, _super);
     function mainState() {
         _super.apply(this, arguments);
+        this.nextEnemyAt = 0;
+        this.enemyDelay = 1000;
     }
     mainState.prototype.preload = function () {
         _super.prototype.preload.call(this);
@@ -21,27 +23,41 @@ var mainState = (function (_super) {
     };
     mainState.prototype.create = function () {
         _super.prototype.create.call(this);
-        // TileSprite: Se repite automáticamente
-        this.sea = this.add.tileSprite(0, 0, 800, 600, 'background');
+        this.createBackground();
+        this.createBullets();
+        this.createPlayer();
+        this.createEnemies();
+        this.cursors = this.input.keyboard.createCursorKeys();
+    };
+    mainState.prototype.createEnemies = function () {
+        this.enemies = this.add.group();
+        this.enemies.classType = GreenEnemy;
+        this.enemies.createMultiple(50, 'greenEnemy');
+    };
+    mainState.prototype.createPlayer = function () {
+        this.player = new Player(this.game, 400, 550, 'player', 0, this.bullets);
+        this.add.existing(this.player);
+    };
+    mainState.prototype.createBullets = function () {
         this.bullets = this.add.group();
         this.bullets.classType = Bullet;
         //Agregamos 100 sprites de bala al grupo.
         // Por defecto se usa el primes sprite del "sprite sheet" y se pone
         // el estado inicial como no existente (muerto).
         this.bullets.createMultiple(100, 'bullet');
-        this.player = new Player(this.game, 400, 550, 'player', 0, this.bullets);
-        this.add.existing(this.player);
-        this.enemies = this.add.group();
-        this.enemies.classType = GreenEnemy;
-        this.enemies.createMultiple(50, 'greenEnemy');
-        this.nextEnemyAt = 0;
-        this.enemyDelay = 1000;
-        this.cursors = this.input.keyboard.createCursorKeys();
+    };
+    mainState.prototype.createBackground = function () {
+        // TileSprite: Se repite automáticamente
+        this.sea = this.add.tileSprite(0, 0, 800, 600, 'background');
     };
     mainState.prototype.update = function () {
         _super.prototype.update.call(this);
         this.sea.tilePosition.y += 0.2;
-        this.physics.arcade.overlap(this.bullets, this.enemy, this.enemyHit, null, this);
+        this.physics.arcade.overlap(this.bullets, this.enemies, this.enemyHit, null, this);
+        this.updatePlayer();
+        this.spawnEnemy();
+    };
+    mainState.prototype.updatePlayer = function () {
         this.player.body.velocity.x = 0;
         this.player.body.velocity.y = 0;
         if (this.cursors.left.isDown) {
@@ -65,9 +81,20 @@ var mainState = (function (_super) {
             this.player.fire();
         }
     };
+    mainState.prototype.spawnEnemy = function () {
+        if (this.nextEnemyAt < this.time.now && this.enemies.countDead() > 0) {
+            var enemy = this.enemies.getFirstExists(false);
+            // spawn at a random location top of the screen
+            enemy.reset(this.rnd.integerInRange(20, 780), 0);
+            // also randomize the speed
+            enemy.body.velocity.y = this.rnd.integerInRange(30, 60);
+            enemy.play('fly');
+            this.nextEnemyAt = this.time.now + this.enemyDelay;
+        }
+    };
     mainState.prototype.enemyHit = function (bullet, enemy) {
         bullet.kill();
-        this.enemy.kill();
+        enemy.kill();
         var explosion = this.add.sprite(enemy.x, enemy.y, 'explosion');
         explosion.anchor.setTo(0.5, 0.5);
         explosion.animations.add('boom');
@@ -121,7 +148,6 @@ var GreenEnemy = (function (_super) {
         this.checkWorldBounds = true;
         this.animations.add('fly', [0, 1, 2], 20, true);
     }
-
     return GreenEnemy;
 })(Phaser.Sprite);
 var Bullet = (function (_super) {
