@@ -35,11 +35,19 @@ class mainState extends Phaser.State {
         // Reproducimos la animación en bucle.
         this.enemy.play('fly');
         this.enemy.anchor.setTo(0.5, 0.5);
+        this.physics.enable(this.enemy, Phaser.Physics.ARCADE);
+
     }
 
     update():void {
         super.update();
         this.sea.tilePosition.y += 0.2;
+    }
+
+    render():void {
+        super.render();
+        this.game.debug.body(this.bullet);
+        this.game.debug.body(this.enemy);
     }
 }
 

@@ -31,10 +31,16 @@ var mainState = (function (_super) {
         // Reproducimos la animación en bucle.
         this.enemy.play('fly');
         this.enemy.anchor.setTo(0.5, 0.5);
+        this.physics.enable(this.enemy, Phaser.Physics.ARCADE);
     };
     mainState.prototype.update = function () {
         _super.prototype.update.call(this);
         this.sea.tilePosition.y += 0.2;
+    };
+    mainState.prototype.render = function () {
+        _super.prototype.render.call(this);
+        this.game.debug.body(this.bullet);
+        this.game.debug.body(this.enemy);
     };
     return mainState;
 })(Phaser.State);
