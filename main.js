@@ -16,6 +16,7 @@ var mainState = (function (_super) {
     };
     mainState.prototype.create = function () {
         _super.prototype.create.call(this);
+        //TileSprite: Se repite automáticamente
         this.background = this.add.tileSprite(0, 0, 800, 600, 'background');
         this.bullet = this.add.sprite(400, 300, 'bullet');
     };

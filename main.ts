@@ -18,8 +18,10 @@ class mainState extends Phaser.State {
     create():void {
         super.create();
 
+        //TileSprite: Se repite automáticamente
         this.background = this.add.tileSprite(0, 0, 800,  600, 'background');
         this.bullet = this.add.sprite(400, 300, 'bullet');
+
     }
 
     update():void {
