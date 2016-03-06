@@ -8,6 +8,7 @@ var mainState = (function (_super) {
     __extends(mainState, _super);
     function mainState() {
         _super.apply(this, arguments);
+        this.bullets = [];
     }
     mainState.prototype.preload = function () {
         _super.prototype.preload.call(this);
@@ -23,10 +24,6 @@ var mainState = (function (_super) {
         _super.prototype.create.call(this);
         // TileSprite: Se repite automáticamente
         this.sea = this.add.tileSprite(0, 0, 800, 600, 'background');
-        this.bullet = this.add.sprite(400, 300, 'bullet');
-        this.bullet.anchor.setTo(0.5, 0.5);
-        this.physics.enable(this.bullet, Phaser.Physics.ARCADE);
-        this.bullet.body.velocity.y = -500;
         this.player = new Player(this.game, 400, 550, 'player', 0);
         this.add.existing(this.player);
         this.enemy = this.add.sprite(400, 200, 'greenEnemy');
@@ -41,7 +38,9 @@ var mainState = (function (_super) {
     mainState.prototype.update = function () {
         _super.prototype.update.call(this);
         this.sea.tilePosition.y += 0.2;
-        this.physics.arcade.overlap(this.bullet, this.enemy, this.enemyHit, null, this);
+        for (var i = 0; i < this.bullets.length; i++) {
+            this.physics.arcade.overlap(this.bullets[i], this.enemy, this.enemyHit, null, this);
+        }
         this.player.body.velocity.x = 0;
         this.player.body.velocity.y = 0;
         if (this.cursors.left.isDown) {
@@ -60,9 +59,20 @@ var mainState = (function (_super) {
             this.physics.arcade.distanceToPointer(this.player) > 15) {
             this.physics.arcade.moveToPointer(this.player, this.player.speed);
         }
+        if (this.input.keyboard.isDown(Phaser.Keyboard.Z) ||
+            this.input.activePointer.isDown) {
+            this.fire();
+        }
+    };
+    mainState.prototype.fire = function () {
+        var bullet = this.add.sprite(this.player.x, this.player.y - 20, 'bullet');
+        bullet.anchor.setTo(0.5, 0.5);
+        this.game.physics.enable(bullet, Phaser.Physics.ARCADE);
+        bullet.body.velocity.y = -500;
+        this.bullets.push(bullet);
     };
     mainState.prototype.enemyHit = function (bullet, enemy) {
-        this.bullet.kill();
+        bullet.kill();
         this.enemy.kill();
         var explosion = this.add.sprite(enemy.x, enemy.y, 'explosion');
         explosion.anchor.setTo(0.5, 0.5);

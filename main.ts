@@ -6,7 +6,7 @@ class mainState extends Phaser.State {
     private bullet:Phaser.Sprite;
     private player:Player;
     private enemy:Phaser.Sprite;
-
+    private bullets:Phaser.Sprite[] = [];
     private cursors:Phaser.CursorKeys;
 
     preload():void {
@@ -27,11 +27,7 @@ class mainState extends Phaser.State {
 
         // TileSprite: Se repite automáticamente
         this.sea = this.add.tileSprite(0, 0, 800, 600, 'background');
-        this.bullet = this.add.sprite(400, 300, 'bullet');
-        this.bullet.anchor.setTo(0.5, 0.5);
-        this.physics.enable(this.bullet, Phaser.Physics.ARCADE);
-        this.bullet.body.velocity.y = -500;
-
+        
         this.player = new Player(this.game, 400, 550, 'player', 0);
         this.add.existing(this.player);
 
@@ -49,7 +45,12 @@ class mainState extends Phaser.State {
     update():void {
         super.update();
         this.sea.tilePosition.y += 0.2;
-        this.physics.arcade.overlap(this.bullet, this.enemy, this.enemyHit, null, this);
+
+        for (var i = 0; i < this.bullets.length; i++) {
+            this.physics.arcade.overlap(
+                this.bullets[i], this.enemy, this.enemyHit, null, this
+            );
+        }
 
         this.player.body.velocity.x = 0;
         this.player.body.velocity.y = 0;
@@ -70,10 +71,23 @@ class mainState extends Phaser.State {
             this.physics.arcade.distanceToPointer(this.player) > 15) {
             this.physics.arcade.moveToPointer(this.player, this.player.speed);
         }
+
+        if (this.input.keyboard.isDown(Phaser.Keyboard.Z) ||
+            this.input.activePointer.isDown) {
+            this.fire();
+        }
+    }
+
+    fire():void {
+        var bullet = this.add.sprite(this.player.x, this.player.y - 20, 'bullet');
+        bullet.anchor.setTo(0.5, 0.5);
+        this.game.physics.enable(bullet, Phaser.Physics.ARCADE);
+        bullet.body.velocity.y = -500;
+        this.bullets.push(bullet);
     }
 
     enemyHit(bullet:Phaser.Sprite, enemy:Phaser.Sprite):void {
-        this.bullet.kill();
+        bullet.kill();
         this.enemy.kill();
         var explosion = this.add.sprite(enemy.x, enemy.y, 'explosion');
         explosion.anchor.setTo(0.5, 0.5);
