@@ -57,6 +57,7 @@ var mainState = (function (_super) {
         _super.prototype.update.call(this);
         this.sea.tilePosition.y += 0.2;
         this.physics.arcade.overlap(this.bullets, this.enemies, this.enemyHit, null, this);
+        this.physics.arcade.overlap(this.player, this.enemies, this.player.hit, null, this);
         this.updatePlayer();
         this.spawnEnemy();
     };
@@ -136,6 +137,14 @@ var Player = (function (_super) {
         bullet.reset(this.x, this.y - 20);
         bullet.body.velocity.y = -500;
     };
+    Player.prototype.hit = function (player, enemy) {
+        enemy.kill();
+        var explosion = this.game.add.sprite(player.x, player.y, 'explosion');
+        explosion.anchor.setTo(0.5, 0.5);
+        explosion.animations.add('boom');
+        explosion.play('boom', 15, false, true);
+        player.kill();
+    };
     Player.prototype.update = function () {
         _super.prototype.update.call(this);
     };
@@ -150,10 +159,9 @@ var GreenEnemy = (function (_super) {
         this.checkWorldBounds = true;
         this.animations.add('fly', [0, 1, 2], 20, true);
     }
-
     GreenEnemy.prototype.update = function () {
         _super.prototype.update.call(this);
-        this.game.debug.body(this);
+        //this.game.debug.body(this);
     };
     return GreenEnemy;
 })(Phaser.Sprite);
@@ -167,10 +175,9 @@ var Bullet = (function (_super) {
         this.outOfBoundsKill = true;
         this.checkWorldBounds = true;
     }
-
     Bullet.prototype.update = function () {
         _super.prototype.update.call(this);
-        this.game.debug.body(this);
+        //this.game.debug.body(this);
     };
     return Bullet;
 })(Phaser.Sprite);

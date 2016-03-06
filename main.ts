@@ -72,6 +72,10 @@ class mainState extends Phaser.State {
             this.bullets, this.enemies, this.enemyHit, null, this
         );
 
+        this.physics.arcade.overlap(
+            this.player, this.enemies, this.player.hit, null, this
+        );
+
         this.updatePlayer();
         this.spawnEnemy();
     }
@@ -172,6 +176,15 @@ class Player extends Phaser.Sprite {
         bullet.body.velocity.y = -500;
     }
 
+    hit(player:Phaser.Sprite, enemy:Phaser.Sprite):void {
+        enemy.kill();
+        var explosion = this.game.add.sprite(player.x, player.y, 'explosion');
+        explosion.anchor.setTo(0.5, 0.5);
+        explosion.animations.add('boom');
+        explosion.play('boom', 15, false, true);
+        player.kill();
+    }
+
     update():void {
         super.update();
     }
@@ -192,7 +205,7 @@ class GreenEnemy extends Phaser.Sprite {
 
     update():void {
         super.update();
-        this.game.debug.body(this);
+        //this.game.debug.body(this);
     }
 }
 
@@ -211,7 +224,7 @@ class Bullet extends Phaser.Sprite {
 
     update():void {
         super.update();
-        this.game.debug.body(this);
+        //this.game.debug.body(this);
     }
 }
 
