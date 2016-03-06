@@ -42,6 +42,7 @@ class mainState extends Phaser.State {
 
         // Add an empty sprite group into our game
         this.bullets = this.add.group();
+        this.bullets.classType = Bullet;
 
         // Enable physics to the whole sprite group
         this.bullets.enableBody = true;
@@ -51,14 +52,6 @@ class mainState extends Phaser.State {
         // Por defecto se usa el primes sprite del "sprite sheet" y se pone
         // el estado inicial como no existente (muerto).
         this.bullets.createMultiple(100, 'bullet');
-
-        // Fijamos el "anchor"
-        this.bullets.setAll('anchor.x', 0.5);
-        this.bullets.setAll('anchor.y', 0.5);
-
-        // Matamos la bala si se sale de los límites de la pantalla
-        this.bullets.setAll('outOfBoundsKill', true);
-        this.bullets.setAll('checkWorldBounds', true);
 
         this.nextShotAt = 0;
         this.shotDelay = 100;
@@ -147,6 +140,20 @@ class Player extends Phaser.Sprite {
         this.body.collideWorldBounds = true;
     }
 }
+
+class Bullet extends Phaser.Sprite {
+    constructor(game:Phaser.Game, x:number, y:number, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture, frame:string|number) {
+        super(game, x, y, key, frame);
+
+        // Fijamos el "anchor"
+        this.anchor.setTo(0.5, 0.5);
+
+        // Matamos la bala si se sale de los límites de la pantalla
+        this.outOfBoundsKill = true;
+        this.checkWorldBounds = true;
+    }
+}
+
 
 class SimpleGame {
     game:Phaser.Game;

@@ -34,6 +34,7 @@ var mainState = (function (_super) {
         this.physics.enable(this.enemy, Phaser.Physics.ARCADE);
         // Add an empty sprite group into our game
         this.bullets = this.add.group();
+        this.bullets.classType = Bullet;
         // Enable physics to the whole sprite group
         this.bullets.enableBody = true;
         this.bullets.physicsBodyType = Phaser.Physics.ARCADE;
@@ -41,12 +42,6 @@ var mainState = (function (_super) {
         // Por defecto se usa el primes sprite del "sprite sheet" y se pone
         // el estado inicial como no existente (muerto).
         this.bullets.createMultiple(100, 'bullet');
-        // Fijamos el "anchor"
-        this.bullets.setAll('anchor.x', 0.5);
-        this.bullets.setAll('anchor.y', 0.5);
-        // Matamos la bala si se sale de los límites de la pantalla
-        this.bullets.setAll('outOfBoundsKill', true);
-        this.bullets.setAll('checkWorldBounds', true);
         this.nextShotAt = 0;
         this.shotDelay = 100;
         this.cursors = this.input.keyboard.createCursorKeys();
@@ -117,6 +112,19 @@ var Player = (function (_super) {
         this.body.collideWorldBounds = true;
     }
     return Player;
+})(Phaser.Sprite);
+var Bullet = (function (_super) {
+    __extends(Bullet, _super);
+    function Bullet(game, x, y, key, frame) {
+        _super.call(this, game, x, y, key, frame);
+        // Fijamos el "anchor"
+        this.anchor.setTo(0.5, 0.5);
+        // Matamos la bala si se sale de los límites de la pantalla
+        this.outOfBoundsKill = true;
+        this.checkWorldBounds = true;
+    }
+
+    return Bullet;
 })(Phaser.Sprite);
 var SimpleGame = (function () {
     function SimpleGame() {
