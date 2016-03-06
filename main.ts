@@ -66,6 +66,9 @@ class mainState extends Phaser.State {
             this.player.body.velocity.y = this.player.speed;
         }
 
+        if (this.input.activePointer.isDown) {
+            this.physics.arcade.moveToPointer(this.player, this.player.speed);
+        }
     }
 
     enemyHit(bullet:Phaser.Sprite, enemy:Phaser.Sprite):void {

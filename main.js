@@ -56,6 +56,9 @@ var mainState = (function (_super) {
         else if (this.cursors.down.isDown) {
             this.player.body.velocity.y = this.player.speed;
         }
+        if (this.input.activePointer.isDown) {
+            this.physics.arcade.moveToPointer(this.player, this.player.speed);
+        }
     };
     mainState.prototype.enemyHit = function (bullet, enemy) {
         this.bullet.kill();
