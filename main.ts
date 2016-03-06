@@ -12,6 +12,7 @@ class mainState extends Phaser.State {
 
         this.load.image('background', 'assets/sea.png');
         this.load.image('bullet', 'assets/bullet.png');
+
     }
 
     create():void {
@@ -19,7 +20,6 @@ class mainState extends Phaser.State {
 
         this.background = this.add.tileSprite(0, 0, 800,  600, 'background');
         this.bullet = this.add.sprite(400, 300, 'bullet');
-
     }
 
     update():void {
