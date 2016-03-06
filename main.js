@@ -20,6 +20,7 @@ var mainState = (function (_super) {
         this.load.spritesheet('greenEnemy', 'assets/enemy.png', 32, 32);
         this.load.spritesheet('explosion', 'assets/explosion.png', 32, 32);
         this.load.spritesheet('player', 'assets/player.png', 64, 64);
+        this.physics.startSystem(Phaser.Physics.ARCADE);
     };
     mainState.prototype.create = function () {
         _super.prototype.create.call(this);
@@ -31,6 +32,7 @@ var mainState = (function (_super) {
     };
     mainState.prototype.createEnemies = function () {
         this.enemies = this.add.group();
+        this.enemies.enableBody = true;
         this.enemies.classType = GreenEnemy;
         this.enemies.createMultiple(50, 'greenEnemy');
     };
@@ -40,6 +42,7 @@ var mainState = (function (_super) {
     };
     mainState.prototype.createBullets = function () {
         this.bullets = this.add.group();
+        this.bullets.enableBody = true;
         this.bullets.classType = Bullet;
         //Agregamos 100 sprites de bala al grupo.
         // Por defecto se usa el primes sprite del "sprite sheet" y se pone
@@ -143,11 +146,15 @@ var GreenEnemy = (function (_super) {
     function GreenEnemy(game, x, y, key, frame) {
         _super.call(this, game, x, y, key, frame);
         this.anchor.setTo(0.5, 0.5);
-        this.game.physics.enable(this, Phaser.Physics.ARCADE);
         this.outOfBoundsKill = true;
         this.checkWorldBounds = true;
         this.animations.add('fly', [0, 1, 2], 20, true);
     }
+
+    GreenEnemy.prototype.update = function () {
+        _super.prototype.update.call(this);
+        this.game.debug.body(this);
+    };
     return GreenEnemy;
 })(Phaser.Sprite);
 var Bullet = (function (_super) {
@@ -156,11 +163,15 @@ var Bullet = (function (_super) {
         _super.call(this, game, x, y, key, frame);
         // Fijamos el "anchor"
         this.anchor.setTo(0.5, 0.5);
-        this.game.physics.enable(this, Phaser.Physics.ARCADE);
         // Matamos la bala si se sale de los límites de la pantalla
         this.outOfBoundsKill = true;
         this.checkWorldBounds = true;
     }
+
+    Bullet.prototype.update = function () {
+        _super.prototype.update.call(this);
+        this.game.debug.body(this);
+    };
     return Bullet;
 })(Phaser.Sprite);
 var SimpleGame = (function () {
