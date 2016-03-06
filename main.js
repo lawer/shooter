@@ -20,16 +20,19 @@ var mainState = (function (_super) {
     mainState.prototype.create = function () {
         _super.prototype.create.call(this);
         // TileSprite: Se repite automáticamente
-        this.background = this.add.tileSprite(0, 0, 800, 600, 'background');
+        this.sea = this.add.tileSprite(0, 0, 800, 600, 'background');
         this.bullet = this.add.sprite(400, 300, 'bullet');
+        this.bullet.anchor.setTo(0.5, 0.5);
         this.enemy = this.add.sprite(400, 200, 'greenEnemy');
         // Definimos una animación marcando los "frames" que definen la animación y los fps
         this.enemy.animations.add('fly', [0, 1, 2], 20, true);
         // Reproducimos la animación en bucle.
         this.enemy.play('fly');
+        this.enemy.anchor.setTo(0.5, 0.5);
     };
     mainState.prototype.update = function () {
         _super.prototype.update.call(this);
+        this.sea.tilePosition.y += 0.2;
     };
     return mainState;
 })(Phaser.State);
