@@ -9,6 +9,8 @@ var mainState = (function (_super) {
     function mainState() {
         _super.apply(this, arguments);
         this.bullets = [];
+        this.nextShotAt = 0;
+        this.shotDelay = 100;
     }
     mainState.prototype.preload = function () {
         _super.prototype.preload.call(this);
@@ -65,6 +67,10 @@ var mainState = (function (_super) {
         }
     };
     mainState.prototype.fire = function () {
+        if (this.nextShotAt > this.time.now) {
+            return;
+        }
+        this.nextShotAt = this.time.now + this.shotDelay;
         var bullet = this.add.sprite(this.player.x, this.player.y - 20, 'bullet');
         bullet.anchor.setTo(0.5, 0.5);
         this.game.physics.enable(bullet, Phaser.Physics.ARCADE);

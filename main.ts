@@ -7,6 +7,8 @@ class mainState extends Phaser.State {
     private player:Player;
     private enemy:Phaser.Sprite;
     private bullets:Phaser.Sprite[] = [];
+    private nextShotAt = 0;
+    private shotDelay = 100;
     private cursors:Phaser.CursorKeys;
 
     preload():void {
@@ -27,7 +29,7 @@ class mainState extends Phaser.State {
 
         // TileSprite: Se repite automáticamente
         this.sea = this.add.tileSprite(0, 0, 800, 600, 'background');
-        
+
         this.player = new Player(this.game, 400, 550, 'player', 0);
         this.add.existing(this.player);
 
@@ -79,6 +81,12 @@ class mainState extends Phaser.State {
     }
 
     fire():void {
+        if (this.nextShotAt > this.time.now) {
+            return;
+        }
+
+        this.nextShotAt = this.time.now + this.shotDelay;
+
         var bullet = this.add.sprite(this.player.x, this.player.y - 20, 'bullet');
         bullet.anchor.setTo(0.5, 0.5);
         this.game.physics.enable(bullet, Phaser.Physics.ARCADE);
