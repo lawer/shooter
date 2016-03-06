@@ -6,6 +6,11 @@ class mainState extends Phaser.State {
     private player:Player;
     private enemy:Phaser.Sprite;
     private bullets:Phaser.Group;
+    private enemies:Phaser.Group;
+
+    private nextEnemyAt:number;
+    private enemyDelay:number;
+
     private cursors:Phaser.CursorKeys;
 
     preload():void {
@@ -38,13 +43,12 @@ class mainState extends Phaser.State {
         this.player = new Player(this.game, 400, 550, 'player', 0, this.bullets);
         this.add.existing(this.player);
 
-        this.enemy = this.add.sprite(400, 200, 'greenEnemy');
-        // Definimos una animación marcando los "frames" que definen la animación y los fps
-        this.enemy.animations.add('fly', [0, 1, 2], 20, true);
-        // Reproducimos la animación en bucle.
-        this.enemy.play('fly');
-        this.enemy.anchor.setTo(0.5, 0.5);
-        this.physics.enable(this.enemy, Phaser.Physics.ARCADE);
+        this.enemies = this.add.group();
+        this.enemies.classType = GreenEnemy;
+        this.enemies.createMultiple(50, 'greenEnemy');
+
+        this.nextEnemyAt = 0;
+        this.enemyDelay = 1000;
 
         this.cursors = this.input.keyboard.createCursorKeys();
     }
@@ -102,7 +106,7 @@ class mainState extends Phaser.State {
 }
 
 class Player extends Phaser.Sprite {
-    private speed:number;
+    speed:number;
     private nextShotAt:number;
     private shotDelay:number;
     private bullets:Phaser.Group;
@@ -113,6 +117,7 @@ class Player extends Phaser.Sprite {
         this.anchor.setTo(0.5, 0.5);
         this.animations.add('fly', [0, 1, 2], 20, true);
         this.play('fly');
+
         this.game.physics.enable(this, Phaser.Physics.ARCADE);
         this.speed = 300;
         this.body.collideWorldBounds = true;
@@ -140,6 +145,21 @@ class Player extends Phaser.Sprite {
 
     update():void {
         super.update();
+    }
+}
+
+class GreenEnemy extends Phaser.Sprite {
+
+    constructor(game:Phaser.Game, x:number, y:number, key:string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture, frame:string|number) {
+        super(game, x, y, key, frame);
+
+        this.anchor.setTo(0.5, 0.5);
+        this.game.physics.enable(this, Phaser.Physics.ARCADE);
+
+        this.outOfBoundsKill = true;
+        this.checkWorldBounds = true;
+
+        this.animations.add('fly', [0, 1, 2], 20, true);
     }
 }
 

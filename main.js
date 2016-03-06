@@ -31,13 +31,11 @@ var mainState = (function (_super) {
         this.bullets.createMultiple(100, 'bullet');
         this.player = new Player(this.game, 400, 550, 'player', 0, this.bullets);
         this.add.existing(this.player);
-        this.enemy = this.add.sprite(400, 200, 'greenEnemy');
-        // Definimos una animación marcando los "frames" que definen la animación y los fps
-        this.enemy.animations.add('fly', [0, 1, 2], 20, true);
-        // Reproducimos la animación en bucle.
-        this.enemy.play('fly');
-        this.enemy.anchor.setTo(0.5, 0.5);
-        this.physics.enable(this.enemy, Phaser.Physics.ARCADE);
+        this.enemies = this.add.group();
+        this.enemies.classType = GreenEnemy;
+        this.enemies.createMultiple(50, 'greenEnemy');
+        this.nextEnemyAt = 0;
+        this.enemyDelay = 1000;
         this.cursors = this.input.keyboard.createCursorKeys();
     };
     mainState.prototype.update = function () {
@@ -112,6 +110,19 @@ var Player = (function (_super) {
         _super.prototype.update.call(this);
     };
     return Player;
+})(Phaser.Sprite);
+var GreenEnemy = (function (_super) {
+    __extends(GreenEnemy, _super);
+    function GreenEnemy(game, x, y, key, frame) {
+        _super.call(this, game, x, y, key, frame);
+        this.anchor.setTo(0.5, 0.5);
+        this.game.physics.enable(this, Phaser.Physics.ARCADE);
+        this.outOfBoundsKill = true;
+        this.checkWorldBounds = true;
+        this.animations.add('fly', [0, 1, 2], 20, true);
+    }
+
+    return GreenEnemy;
 })(Phaser.Sprite);
 var Bullet = (function (_super) {
     __extends(Bullet, _super);
